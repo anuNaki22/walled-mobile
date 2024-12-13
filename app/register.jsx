@@ -7,17 +7,23 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import HelloWorld from "./components/HelloWorld";
-import Button from "./components/Button";
-import Input from "./components/Input";
+import Button from "../components/Button";
+import Input from "../components/Input";
+import { Link } from "expo-router";
 
-export default function App() {
+export default function Register() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("./assets/logo.png")}
+        source={require("../assets/logo.png")}
         style={styles.logo}
         resizeMode="stretch"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Fullname"
+        placeholderTextColor="#aaa"
+        keyboardType="default"
       />
       <TextInput
         style={styles.input}
@@ -25,24 +31,30 @@ export default function App() {
         placeholderTextColor="#aaa"
         keyboardType="email-address"
       />
-
-      {/* <TextInput
-        style={styles.input}
-        placeholder="No HP"
-        placeholderTextColor="#aaa"
-        keyboardType="number-pad"
-      /> */}
-
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Avatar Url"
+        placeholderTextColor="#aaa"
+        keyboardType="url"
+      />
 
-      <Button text="Login" bgColor="#19918F" />
-      <Input text="Notes" />
+      <Button text="Register" bgColor="#19918F" />
 
+      {/* Wrapper untuk teks rata kiri */}
+      <View style={styles.textContainer}>
+        <Text style={styles.text}>
+          Have account?{" "}
+          <Link style={styles.link} href="/">
+            Login here
+          </Link>
+        </Text>
+      </View>
       <StatusBar style="auto" />
     </View>
   );
@@ -61,11 +73,6 @@ const styles = StyleSheet.create({
     height: 57,
     marginBottom: 100,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
   input: {
     width: "100%",
     height: 50,
@@ -77,17 +84,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     fontSize: 16,
   },
-  button: {
-    backgroundColor: "#4DB6AC",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 15,
+  textContainer: {
     width: "100%",
-    alignItems: "center",
+    alignItems: "flex-start",
+    marginTop: 20,
   },
-  buttonText: {
-    color: "#fff",
+  text: {
     fontSize: 16,
-    fontWeight: "bold",
+  },
+  link: {
+    color: "#19918F",
+    // textDecorationLine: "underline",
   },
 });
