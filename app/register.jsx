@@ -13,13 +13,13 @@ import {
 import { Link, useRouter } from "expo-router";
 import Button from "../components/Button";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-// import CheckBox from "react-native-check-box";
 import Checkbox from "expo-checkbox";
 
 export default function Register() {
   const router = useRouter();
 
   const [isChecked, setIsChecked] = useState(false); // State untuk checkbox
+  const [isTermsViewed, setIsTermsViewed] = useState(false); // State untuk terms viewed
   const [modalVisible, setModalVisible] = useState(false); // State untuk modal
   const [formData, setFormData] = useState({
     fullname: "",
@@ -93,15 +93,11 @@ export default function Register() {
 
       {/* Checkbox untuk persetujuan Terms and Conditions */}
       <View style={styles.checkboxContainer}>
-        {/* <CheckBox
-          isChecked={isChecked}
-          onClick={() => setIsChecked(!isChecked)}
-          style={styles.checkbox}
-          /> */}
         <Checkbox
           style={styles.checkbox}
           value={isChecked}
           onValueChange={setIsChecked}
+          disabled={!isTermsViewed} // Checkbox hanya aktif jika Terms sudah dilihat
           color={isChecked ? "#19918F" : undefined}
         />
         <Text style={styles.checkboxText}>
@@ -125,7 +121,12 @@ export default function Register() {
         <View style={styles.modalContainer}>
           {/* Header dengan Back button dan title */}
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(false);
+                setIsTermsViewed(true); // Tandai bahwa Terms telah dilihat
+              }}
+            >
               <MaterialIcons
                 name="arrow-back-ios-new"
                 size={24}
