@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
@@ -6,55 +7,171 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Modal,
+  ScrollView,
 } from "react-native";
+import { Link, useRouter } from "expo-router";
 import Button from "../components/Button";
-import Input from "../components/Input";
-import { Link } from "expo-router";
-
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import CheckBox from "react-native-check-box";
 export default function Register() {
+  const router = useRouter();
+
+  const [isChecked, setIsChecked] = useState(false); // State untuk checkbox
+  const [modalVisible, setModalVisible] = useState(false); // State untuk modal
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    avatarUrl: "",
+  });
+
+  const handleRegister = () => {
+    const { fullname, email, password, avatarUrl } = formData;
+
+    if (!fullname || !email || !password || !avatarUrl) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    if (!isChecked) {
+      alert("Please agree to the Terms and Conditions.");
+      return;
+    }
+
+    console.log("Registration successful:", formData);
+    router.push("/");
+  };
+
+  const handleInputChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <View style={styles.container}>
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
-        resizeMode="stretch"
+        resizeMode="contain"
       />
       <TextInput
         style={styles.input}
         placeholder="Fullname"
         placeholderTextColor="#aaa"
-        keyboardType="default"
+        value={formData.fullname}
+        onChangeText={(text) => handleInputChange("fullname", text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
+        value={formData.email}
+        onChangeText={(text) => handleInputChange("email", text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
+        value={formData.password}
+        onChangeText={(text) => handleInputChange("password", text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Avatar Url"
         placeholderTextColor="#aaa"
         keyboardType="url"
+        value={formData.avatarUrl}
+        onChangeText={(text) => handleInputChange("avatarUrl", text)}
       />
 
-      <Button text="Register" bgColor="#19918F" />
+      {/* Checkbox untuk persetujuan Terms and Conditions */}
+      <View style={styles.checkboxContainer}>
+        <CheckBox
+          isChecked={isChecked}
+          onClick={() => setIsChecked(!isChecked)}
+          style={styles.checkbox}
+        />
+        <Text style={styles.checkboxText}>
+          I have read and agree to the{" "}
+          <Text style={styles.link} onPress={() => setModalVisible(true)}>
+            Terms and Conditions
+          </Text>
+          <Text style={{ color: "red" }}> *</Text>
+        </Text>
+      </View>
 
-      {/* Wrapper untuk teks rata kiri */}
+      <Button text="Register" bgColor="#19918F" onPress={handleRegister} />
+
+      {/* Modal untuk menampilkan syarat dan ketentuan */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          {/* Header dengan Back button dan title */}
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <MaterialIcons
+                name="arrow-back-ios-new"
+                size={24}
+                color="black"
+              />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Terms and Conditions</Text>
+          </View>
+
+          {/* Deskripsi panjang yang dapat di-scroll */}
+          <ScrollView style={styles.modalContent}>
+            <Text style={styles.termsText}>
+              Lorem Ipsum is simply dummy text of the printing and typesetting
+              industry. Lorem Ipsum has been the industry's standard dummy text
+              ever since the 1500s, when an unknown printer took a galley of
+              type and scrambled it to make a type specimen book. It has
+              survived not only five centuries, but also the leap into
+              electronic typesetting, remaining essentially unchanged. It was
+              popularised in the 1960s with the release of Letraset sheets
+              containing Lorem Ipsum passages, and more recently with desktop
+              publishing software like Aldus PageMaker including versions of
+              Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and
+              typesetting industry. Lorem Ipsum has been the industry's standard
+              dummy text ever since the 1500s, when an unknown printer took a
+              galley of type and scrambled it to make a type specimen book. It
+              has survived not only five centuries, but also the leap into
+              electronic typesetting, remaining essentially unchanged. It was
+              popularised in the 1960s with the release of Letraset sheets
+              containing Lorem Ipsum passages, and more recently with desktop
+              publishing software like Aldus PageMaker including versions of
+              Lorem Ipsum. Lorem Ipsum is simply dummy text of the printing and
+              typesetting industry. Lorem Ipsum has been the industry's standard
+              dummy text ever since the 1500s, when an unknown printer took a
+              galley of type and scrambled it to make a type specimen book. It
+              has survived not only five centuries, but also the leap into
+              electronic typesetting, remaining essentially unchanged. It was
+              popularised in the 1960s with the release of Letraset sheets
+              containing Lorem Ipsum passages, and more recently with desktop
+              publishing software like Aldus PageMaker including versions of
+              Lorem Ipsum.
+            </Text>
+          </ScrollView>
+        </View>
+      </Modal>
+
       <View style={styles.textContainer}>
         <Text style={styles.text}>
-          Have account?{" "}
+          Have an account?{" "}
           <Link style={styles.link} href="/">
             Login here
           </Link>
         </Text>
       </View>
+
       <StatusBar style="auto" />
     </View>
   );
@@ -71,7 +188,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 233,
     height: 57,
-    marginBottom: 100,
+    marginBottom: 50,
   },
   input: {
     width: "100%",
@@ -84,6 +201,51 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9f9f9",
     fontSize: 16,
   },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  checkbox: {
+    marginRight: 10,
+  },
+  checkboxText: {
+    fontSize: 16,
+  },
+  link: {
+    color: "#19918F",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 10,
+  },
+  modalTitle: {
+    flex: 1,
+    textAlign: "left",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "black",
+    marginLeft: 15,
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  termsText: {
+    fontSize: 14,
+    color: "#333",
+    lineHeight: 22,
+  },
   textContainer: {
     width: "100%",
     alignItems: "flex-start",
@@ -91,9 +253,5 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-  },
-  link: {
-    color: "#19918F",
-    // textDecorationLine: "underline",
   },
 });
