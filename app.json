@@ -2,6 +2,7 @@
   "expo": {
     "name": "walled-mobile",
     "slug": "walled-mobile",
+    "scheme": "walled-mobile", 
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
