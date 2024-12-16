@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
@@ -10,85 +9,127 @@ import {
   Modal,
   ScrollView,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
 import Button from "../components/Button";
+import { Link, useRouter } from "expo-router";
+import { z } from "zod";
+import { useState } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Checkbox from "expo-checkbox";
 
+const RegisterSchema = z
+  .object({
+    fullname: z.string().min(1, { message: "Fullname is required" }),
+    phonenumber: z.string().min(1, { message: "Phonenumber is required" }),
+    email: z.string().email({ message: "Invalid email address" }),
+    password: z
+      .string()
+      .min(8, { message: "Must be 8 or more characters long" }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: "Must be 8 or more characters long" }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        path: ["confirmPassword"],
+        message: "Passwords must match",
+      });
+    }
+  });
+
 export default function Register() {
-  const router = useRouter();
+  const [form, setForm] = useState({});
+  const [errorMsg, setErrors] = useState({});
 
   const [isChecked, setIsChecked] = useState(false); // State untuk checkbox
   const [isTermsViewed, setIsTermsViewed] = useState(false); // State untuk terms viewed
   const [modalVisible, setModalVisible] = useState(false); // State untuk modal
-  const [formData, setFormData] = useState({
-    fullname: "",
-    email: "",
-    password: "",
-    avatarUrl: "",
-  });
 
-  const handleRegister = () => {
-    const { fullname, email, password, avatarUrl } = formData;
+  const router = useRouter();
 
-    if (!fullname || !email || !password || !avatarUrl) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    if (!isChecked) {
-      alert("Please agree to the Terms and Conditions.");
-      return;
-    }
-
-    console.log("Registration successful:", formData);
-    router.push("/");
+  const handleInputChange = (key, value) => {
+    setErrors({ ...errorMsg, [key]: "" });
+    setForm({ ...form, [key]: value });
   };
 
-  const handleInputChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  handleSubmit = () => {
+    try {
+      RegisterSchema.parse(form);
+      router.push("/");
+    } catch (err) {
+      if (err.errors && Array.isArray(err.errors)) {
+        const validation = err.errors;
+        const errors = {};
+        validation.map((item) => {
+          const key = item.path[0];
+          errors[key] = item.message;
+        });
+        setErrors(errors);
+      } else {
+        console.error("Unexpected error format:", err);
+      }
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
-        resizeMode="contain"
+        resizeMode="stretch"
       />
+
+      {errorMsg.fullname ? (
+        <Text style={styles.errorMsg}>{errorMsg.fullname}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Fullname"
         placeholderTextColor="#aaa"
-        value={formData.fullname}
         onChangeText={(text) => handleInputChange("fullname", text)}
       />
+
+      {errorMsg.email ? (
+        <Text style={styles.errorMsg}>{errorMsg.email}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
-        value={formData.email}
         onChangeText={(text) => handleInputChange("email", text)}
       />
+
+      {errorMsg.phonenumber ? (
+        <Text style={styles.errorMsg}>{errorMsg.phonenumber}</Text>
+      ) : null}
+      <TextInput
+        style={styles.input}
+        placeholder="Phone Number"
+        placeholderTextColor="#aaa"
+        onChangeText={(text) => handleInputChange("phonenumber", text)}
+      />
+
+      {errorMsg.password ? (
+        <Text style={styles.errorMsg}>{errorMsg.password}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
-        value={formData.password}
         onChangeText={(text) => handleInputChange("password", text)}
       />
+
+      {errorMsg.confirmPassword ? (
+        <Text style={styles.errorMsg}>{errorMsg.confirmPassword}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
-        placeholder="Avatar Url"
+        placeholder="Confirm Password"
         placeholderTextColor="#aaa"
-        keyboardType="url"
-        value={formData.avatarUrl}
-        onChangeText={(text) => handleInputChange("avatarUrl", text)}
+        secureTextEntry={true}
+        onChangeText={(text) => handleInputChange("confirmPassword", text)}
       />
 
       {/* Checkbox untuk persetujuan Terms and Conditions */}
@@ -109,7 +150,7 @@ export default function Register() {
         </Text>
       </View>
 
-      <Button text="Register" bgColor="#19918F" onPress={handleRegister} />
+      <Button handlePress={handleSubmit} text="Register" />
 
       {/* Modal untuk menampilkan syarat dan ketentuan */}
       <Modal
@@ -174,21 +215,20 @@ export default function Register() {
 
       <View style={styles.textContainer}>
         <Text style={styles.text}>
-          Have an account?{" "}
+          Already have an account?{" "}
           <Link style={styles.link} href="/">
             Login here
           </Link>
         </Text>
       </View>
-
       <StatusBar style="auto" />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
@@ -262,5 +302,11 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
+  },
+  errorMsg: {
+    color: "red",
+    width: "100%",
+    fontSize: 14,
+    marginBottom: 5,
   },
 });

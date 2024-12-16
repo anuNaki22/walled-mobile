@@ -10,14 +10,14 @@ import {
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-function LogoTitle() {
-  return (
-    <Image
-      style={styles.image}
-      source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
-    />
-  );
-}
+// function LogoTitle() {
+//   return (
+//     <Image
+//       style={styles.image}
+//       source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
+//     />
+//   );
+// }
 
 export default function Home() {
   return (

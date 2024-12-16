@@ -1,10 +1,10 @@
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-function Button({ bgColor = "#19918F", text, onPress }) {
+function Button({ bgColor = "#19918F", text, handlePress = () => {} }) {
   return (
     <TouchableOpacity
       style={{ ...styles.button, backgroundColor: bgColor }}
-      onPress={onPress}
+      onPress={handlePress}
     >
       <Text style={styles.buttonText}>{text}</Text>
     </TouchableOpacity>

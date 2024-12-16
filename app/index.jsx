@@ -1,16 +1,40 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, TextInput, Image } from "react-native";
+import { StyleSheet, View, TextInput, Image, Text } from "react-native";
 import Button from "../components/Button";
 import { Link, useRouter } from "expo-router";
+import { z } from "zod";
+import { useState } from "react";
 
-export default function Login() {
+const LoginSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+  password: z.string().min(8, { message: "Must be 8 or more characters long" }),
+});
+
+export default function App() {
+  const [form, setForm] = useState({});
+  const [errorMsg, setErrors] = useState({});
+
   const router = useRouter();
 
-  const handleLogin = () => {
-    console.log("Login button clicked");
-    router.push("/(home)");
+  handleInputChange = (key, value) => {
+    setErrors({ ...errorMsg, [key]: "" });
+    setForm({ ...form, [key]: value });
   };
 
+  handleSubmit = () => {
+    try {
+      LoginSchema.parse(form);
+      router.push("/(home)");
+    } catch (err) {
+      const validation = err.errors;
+      const errors = {};
+      validation.map((item) => {
+        const key = item.path[0];
+        errors[key] = item.message;
+      });
+      setErrors(errors);
+    }
+  };
   return (
     <View style={styles.container}>
       <Image
@@ -18,19 +42,30 @@ export default function Login() {
         style={styles.logo}
         resizeMode="stretch"
       />
+      {errorMsg.email ? (
+        <Text style={styles.errorMsg}>{errorMsg.email}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
+        onChangeText={(text) => handleInputChange("email", text)}
       />
+
+      {errorMsg.password ? (
+        <Text style={styles.errorMsg}>{errorMsg.password}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
+        marginBottom="100"
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
+        onChangeText={(text) => handleInputChange("password", text)}
       />
-      <Button text="Login" bgColor="#19918F" onPress={handleLogin} />
+
+      <Button handlePress={handleSubmit} text="Login" />
 
       {/* Wrapper untuk teks rata kiri */}
       <View style={styles.textContainer}>
@@ -80,5 +115,9 @@ const styles = StyleSheet.create({
   },
   link: {
     color: "#19918F",
+  },
+  errorMsg: {
+    color: "red",
+    width: "100%",
   },
 });
