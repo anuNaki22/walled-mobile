@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import { Link, useRouter } from "expo-router";
 import { z } from "zod";
 import { useState } from "react";
+import axios from "axios";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -21,10 +22,19 @@ export default function App() {
     setForm({ ...form, [key]: value });
   };
 
-  handleSubmit = () => {
+  handleSubmit = async () => {
     try {
       LoginSchema.parse(form);
-      router.push("/(home)");
+
+      const res = await axios.post(
+        "http://192.168.30.57:8080/api/auth/login",
+        // "https://6776-182-3-53-7.ngrok-free.app/auth/login",
+        form
+      );
+      console.log(res, "ini response");
+      if (res.status === 200) {
+        router.push("/(home)");
+      }
     } catch (err) {
       const validation = err.errors;
       const errors = {};
