@@ -13,7 +13,9 @@ import {
 import { Link, useRouter } from "expo-router";
 import Button from "../components/Button";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import CheckBox from "react-native-check-box";
+// import CheckBox from "react-native-check-box";
+import Checkbox from "expo-checkbox";
+
 export default function Register() {
   const router = useRouter();
 
@@ -91,10 +93,16 @@ export default function Register() {
 
       {/* Checkbox untuk persetujuan Terms and Conditions */}
       <View style={styles.checkboxContainer}>
-        <CheckBox
+        {/* <CheckBox
           isChecked={isChecked}
           onClick={() => setIsChecked(!isChecked)}
           style={styles.checkbox}
+          /> */}
+        <Checkbox
+          style={styles.checkbox}
+          value={isChecked}
+          onValueChange={setIsChecked}
+          color={isChecked ? "#19918F" : undefined}
         />
         <Text style={styles.checkboxText}>
           I have read and agree to the{" "}
