@@ -19,7 +19,12 @@ import Checkbox from "expo-checkbox";
 const RegisterSchema = z
   .object({
     fullname: z.string().min(1, { message: "Fullname is required" }),
-    phonenumber: z.string().min(1, { message: "Phonenumber is required" }),
+    phonenumber: z
+      .string()
+      .min(1, { message: "Phonenumber is required" })
+      .regex(/^\d+$/, { message: "Phonenumber must only contain numbers" })
+      .min(10, { message: "Phonenumber must be at least 10 digits" })
+      .max(13, { message: "Phonenumber must be at most 13 digits" }),
     email: z.string().email({ message: "Invalid email address" }),
     password: z
       .string()
