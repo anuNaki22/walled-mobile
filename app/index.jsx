@@ -1,9 +1,16 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, TextInput, Image } from "react-native";
 import Button from "../components/Button";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 export default function Login() {
+  const router = useRouter();
+
+  const handleLogin = () => {
+    console.log("Login button clicked");
+    router.push("/(home)");
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -17,15 +24,13 @@ export default function Login() {
         placeholderTextColor="#aaa"
         keyboardType="email-address"
       />
-
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
       />
-
-      <Button text="Login" bgColor="#19918F" />
+      <Button text="Login" bgColor="#19918F" onPress={handleLogin} />
 
       {/* Wrapper untuk teks rata kiri */}
       <View style={styles.textContainer}>
@@ -36,9 +41,6 @@ export default function Login() {
           </Link>
         </Text>
       </View>
-      <Link style={styles.link} href="/(home)">
-        Masuk
-      </Link>
       <StatusBar style="auto" />
     </View>
   );
@@ -78,6 +80,5 @@ const styles = StyleSheet.create({
   },
   link: {
     color: "#19918F",
-    // textDecorationLine: "underline",
   },
 });
