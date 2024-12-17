@@ -57,11 +57,50 @@ export default function Register() {
     setForm({ ...form, [key]: value });
   };
 
-  handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
+      // Validate the form data
       RegisterSchema.parse(form);
-      router.push("/");
+
+      if (!isChecked) {
+        setErrors((prev) => ({
+          ...prev,
+          terms: "You must agree to the Terms and Conditions",
+        }));
+        return;
+      }
+
+      // Make API request
+      const response = await fetch(
+        "http://192.168.30.57:8080/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fullName: form.fullname,
+            email: form.email,
+            password: form.password,
+            phonenumber: form.phonenumber,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Registration successful:", data);
+        router.push("/"); // Redirect to login or dashboard
+      } else {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        setErrors((prev) => ({
+          ...prev,
+          server: errorData.message || "Something went wrong!",
+        }));
+      }
     } catch (err) {
+      // Validation errors
       if (err.errors && Array.isArray(err.errors)) {
         const validation = err.errors;
         const errors = {};
@@ -71,7 +110,7 @@ export default function Register() {
         });
         setErrors(errors);
       } else {
-        console.error("Unexpected error format:", err);
+        console.error("Unexpected error:", err);
       }
     }
   };
@@ -154,6 +193,13 @@ export default function Register() {
           <Text style={{ color: "red" }}> *</Text>
         </Text>
       </View>
+
+      {errorMsg.server ? (
+        <Text style={styles.errorMsg}>{errorMsg.server}</Text>
+      ) : null}
+      {errorMsg.terms ? (
+        <Text style={styles.errorMsg}>{errorMsg.terms}</Text>
+      ) : null}
 
       <Button handlePress={handleSubmit} text="Register" />
 
