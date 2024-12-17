@@ -42,6 +42,11 @@ export default function Home() {
           balance: parseFloat(userData.wallet.balance), // Konversi string ke angka
         });
 
+        await AsyncStorage.setItem(
+          "balance",
+          userData.wallet.balance.toString()
+        );
+
         // Set contoh transaksi (opsional)
         setTransactions([
           {
@@ -137,10 +142,14 @@ export default function Home() {
           <View>
             <View style={{ gap: 20 }}>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome6 size={18} name="add" color={"#fff"} />
+                <Link href="/topup">
+                  <FontAwesome6 size={18} name="add" color={"#fff"} />
+                </Link>
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton}>
-                <FontAwesome size={18} name="send" color={"#fff"} />
+                <Link href="/transfer">
+                  <FontAwesome size={18} name="send" color={"#fff"} />
+                </Link>
               </TouchableOpacity>
             </View>
           </View>

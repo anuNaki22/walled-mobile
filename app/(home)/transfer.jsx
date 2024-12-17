@@ -1,13 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import Input from "../../components/Input";
 import Amount from "../../components/Amount";
 import Button from "../../components/Button";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Transfer() {
   const [accountNumber, setAccountNumber] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [balance, setBalance] = useState("");
+
+  useEffect(() => {
+    const getBalance = async () => {
+      try {
+        const balance = await AsyncStorage.getItem("balance");
+        if (balance) {
+          setBalance(parseFloat(balance)); // Konversi ke float
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+      }
+    };
+
+    getBalance();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -29,7 +46,9 @@ export default function Transfer() {
         <Amount
           showBalance={true}
           marginBottom={24}
-          balance={"10.000.000"}
+          // balance={"10.000.000"}
+          balance={balance ? balance.toLocaleString("id-ID") : "Loading..."}
+          // balance={res.data.data.balance.toLocaleString("id-ID")}
           onChangeText={(value) => setAmount(value)}
         />
         <Input text={"Notes"} onChangeText={(value) => setNotes(value)} />
