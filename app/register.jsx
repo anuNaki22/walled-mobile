@@ -19,19 +19,15 @@ import Checkbox from "expo-checkbox";
 const RegisterSchema = z
   .object({
     fullname: z.string().min(1, { message: "Fullname is required" }),
-    phonenumber: z
-      .string()
-      .min(1, { message: "Phonenumber is required" })
-      .regex(/^\d+$/, { message: "Phonenumber must only contain numbers" })
-      .min(10, { message: "Phonenumber must be at least 10 digits" })
-      .max(13, { message: "Phonenumber must be at most 13 digits" }),
+    username: z.string().min(1, { message: "Username is required" }),
+    avatar_url: z.string().url({ message: "Avatar URL must be valid" }),
     email: z.string().email({ message: "Invalid email address" }),
     password: z
       .string()
-      .min(8, { message: "Must be 8 or more characters long" }),
+      .min(8, { message: "Password must be 8 or more characters long" }),
     confirmPassword: z
       .string()
-      .min(8, { message: "Must be 8 or more characters long" }),
+      .min(8, { message: "Confirm Password must match Password" }),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
@@ -45,7 +41,6 @@ const RegisterSchema = z
 export default function Register() {
   const [form, setForm] = useState({});
   const [errorMsg, setErrors] = useState({});
-
   const [isChecked, setIsChecked] = useState(false); // State untuk checkbox
   const [isTermsViewed, setIsTermsViewed] = useState(false); // State untuk terms viewed
   const [modalVisible, setModalVisible] = useState(false); // State untuk modal
@@ -57,21 +52,56 @@ export default function Register() {
     setForm({ ...form, [key]: value });
   };
 
-  handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       RegisterSchema.parse(form);
-      router.push("/");
+
+      if (!isChecked) {
+        setErrors((prev) => ({
+          ...prev,
+          terms: "You must agree to the Terms and Conditions",
+        }));
+        return;
+      }
+
+      const response = await fetch(
+        "https://walled-api.vercel.app/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fullname: form.fullname,
+            username: form.username,
+            email: form.email,
+            password: form.password,
+            avatar_url: form.avatar_url,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Registration successful:", data);
+        router.push("/"); // Redirect to login or dashboard
+      } else {
+        const errorData = await response.json();
+        setErrors((prev) => ({
+          ...prev,
+          server: errorData.message || "Something went wrong!",
+        }));
+      }
     } catch (err) {
       if (err.errors && Array.isArray(err.errors)) {
-        const validation = err.errors;
         const errors = {};
-        validation.map((item) => {
+        err.errors.forEach((item) => {
           const key = item.path[0];
           errors[key] = item.message;
         });
         setErrors(errors);
       } else {
-        console.error("Unexpected error format:", err);
+        console.error("Unexpected error:", err);
       }
     }
   };
@@ -84,19 +114,26 @@ export default function Register() {
         resizeMode="stretch"
       />
 
-      {errorMsg.fullname ? (
-        <Text style={styles.errorMsg}>{errorMsg.fullname}</Text>
-      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Fullname"
         placeholderTextColor="#aaa"
         onChangeText={(text) => handleInputChange("fullname", text)}
       />
+      {errorMsg.fullname && (
+        <Text style={styles.errorMsg}>{errorMsg.fullname}</Text>
+      )}
 
-      {errorMsg.email ? (
-        <Text style={styles.errorMsg}>{errorMsg.email}</Text>
-      ) : null}
+      <TextInput
+        style={styles.input}
+        placeholder="Username"
+        placeholderTextColor="#aaa"
+        onChangeText={(text) => handleInputChange("username", text)}
+      />
+      {errorMsg.username && (
+        <Text style={styles.errorMsg}>{errorMsg.username}</Text>
+      )}
+
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -104,20 +141,18 @@ export default function Register() {
         keyboardType="email-address"
         onChangeText={(text) => handleInputChange("email", text)}
       />
+      {errorMsg.email && <Text style={styles.errorMsg}>{errorMsg.email}</Text>}
 
-      {errorMsg.phonenumber ? (
-        <Text style={styles.errorMsg}>{errorMsg.phonenumber}</Text>
-      ) : null}
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
+        placeholder="Avatar URL"
         placeholderTextColor="#aaa"
-        onChangeText={(text) => handleInputChange("phonenumber", text)}
+        onChangeText={(text) => handleInputChange("avatar_url", text)}
       />
+      {errorMsg.avatar_url && (
+        <Text style={styles.errorMsg}>{errorMsg.avatar_url}</Text>
+      )}
 
-      {errorMsg.password ? (
-        <Text style={styles.errorMsg}>{errorMsg.password}</Text>
-      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -125,10 +160,10 @@ export default function Register() {
         secureTextEntry={true}
         onChangeText={(text) => handleInputChange("password", text)}
       />
+      {errorMsg.password && (
+        <Text style={styles.errorMsg}>{errorMsg.password}</Text>
+      )}
 
-      {errorMsg.confirmPassword ? (
-        <Text style={styles.errorMsg}>{errorMsg.confirmPassword}</Text>
-      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
@@ -136,14 +171,16 @@ export default function Register() {
         secureTextEntry={true}
         onChangeText={(text) => handleInputChange("confirmPassword", text)}
       />
+      {errorMsg.confirmPassword && (
+        <Text style={styles.errorMsg}>{errorMsg.confirmPassword}</Text>
+      )}
 
-      {/* Checkbox untuk persetujuan Terms and Conditions */}
       <View style={styles.checkboxContainer}>
         <Checkbox
           style={styles.checkbox}
           value={isChecked}
           onValueChange={setIsChecked}
-          disabled={!isTermsViewed} // Checkbox hanya aktif jika Terms sudah dilihat
+          disabled={!isTermsViewed}
           color={isChecked ? "#19918F" : undefined}
         />
         <Text style={styles.checkboxText}>
@@ -151,9 +188,9 @@ export default function Register() {
           <Text style={styles.link} onPress={() => setModalVisible(true)}>
             Terms and Conditions
           </Text>
-          <Text style={{ color: "red" }}> *</Text>
         </Text>
       </View>
+      {errorMsg.terms && <Text style={styles.errorMsg}>{errorMsg.terms}</Text>}
 
       <Button handlePress={handleSubmit} text="Register" />
 
@@ -226,6 +263,7 @@ export default function Register() {
           </Link>
         </Text>
       </View>
+
       <StatusBar style="auto" />
     </ScrollView>
   );
