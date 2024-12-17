@@ -5,6 +5,7 @@ import { Link, useRouter } from "expo-router";
 import { z } from "zod";
 import { useState } from "react";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -14,37 +15,46 @@ const LoginSchema = z.object({
 export default function App() {
   const [form, setForm] = useState({});
   const [errorMsg, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
 
   const router = useRouter();
 
-  handleInputChange = (key, value) => {
+  const handleInputChange = (key, value) => {
     setErrors({ ...errorMsg, [key]: "" });
     setForm({ ...form, [key]: value });
   };
 
-  handleSubmit = async () => {
+  const handleSubmit = async () => {
     try {
       LoginSchema.parse(form);
 
       const res = await axios.post(
         "http://192.168.30.57:8080/api/auth/login",
-        // "https://6776-182-3-53-7.ngrok-free.app/auth/login",
         form
       );
-      console.log(res, "ini response");
+
       if (res.status === 200) {
+        await AsyncStorage.setItem("token", res.data.accessToken);
+        console.log("Response:", res);
         router.push("/(home)");
       }
     } catch (err) {
-      const validation = err.errors;
-      const errors = {};
-      validation.map((item) => {
-        const key = item.path[0];
-        errors[key] = item.message;
-      });
-      setErrors(errors);
+      if (err.name === "ZodError") {
+        const validationErrors = {};
+        err.errors.forEach((item) => {
+          validationErrors[item.path[0]] = item.message;
+        });
+        setErrors(validationErrors);
+      } else if (err.response) {
+        console.error("Server Error:", err.response.data);
+        setServerError(err.response.data.message || "Login failed.");
+      } else {
+        console.error("Unexpected Error:", err);
+        setServerError("An unexpected error occurred.");
+      }
     }
   };
+
   return (
     <View style={styles.container}>
       <Image
@@ -68,16 +78,28 @@ export default function App() {
       ) : null}
       <TextInput
         style={styles.input}
-        marginBottom="100"
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry={true}
         onChangeText={(text) => handleInputChange("password", text)}
       />
 
+      {/* {serverError ? <Text style={styles.errorMsg}>{serverError}</Text> : null} */}
+
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {serverError ? (
+          <Text style={{ color: "red" }}>{serverError}</Text>
+        ) : null}
+      </View>
+
       <Button handlePress={handleSubmit} text="Login" />
 
-      {/* Wrapper untuk teks rata kiri */}
       <View style={styles.textContainer}>
         <Text style={styles.text}>
           Don’t have an account?{" "}
