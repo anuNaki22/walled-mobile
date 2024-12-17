@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import moment from "moment"; // To handle date formatting
 
 const TableTransactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -20,7 +21,7 @@ const TableTransactions = () => {
         const token = await AsyncStorage.getItem("token");
 
         const response = await axios.get(
-          "http://192.168.30.57:8080/api/transactions",
+          "https://walled-api.vercel.app/transactions",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -28,7 +29,7 @@ const TableTransactions = () => {
           }
         );
 
-        setTransactions(response.data);
+        setTransactions(response.data.data); // Update based on the API response structure
       } catch (err) {
         setError(err.message);
       } finally {
@@ -64,17 +65,26 @@ const TableTransactions = () => {
             <Text style={styles.transactionName}>
               {transaction.description}
             </Text>
-            <Text style={styles.transactionType}>{transaction.type}</Text>
-            <Text style={styles.transactionDate}>{transaction.dateTime}</Text>
+            <Text style={styles.transactionType}>
+              {transaction.transaction_type}
+            </Text>
+            <Text style={styles.transactionDate}>
+              {moment(transaction.transaction_date).format(
+                "DD MMM YYYY, HH:mm"
+              )}
+            </Text>
           </View>
           <Text
             style={[
               styles.transactionAmount,
-              { color: transaction.type === "DEBIT" ? "red" : "green" },
+              {
+                color:
+                  transaction.transaction_type === "top-up" ? "green" : "red",
+              },
             ]}
           >
-            {transaction.type === "DEBIT" ? "-" : "+"} Rp{" "}
-            {parseInt(transaction.amount).toLocaleString("id-ID")}
+            {transaction.transaction_type === "top-up" ? "+" : "-"} Rp{" "}
+            {parseFloat(transaction.amount).toLocaleString("id-ID")}
           </Text>
         </View>
       ))}

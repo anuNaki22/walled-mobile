@@ -29,12 +29,12 @@ export default function App() {
       LoginSchema.parse(form);
 
       const res = await axios.post(
-        "http://192.168.30.57:8080/api/auth/login",
+        "https://walled-api.vercel.app/auth/login",
         form
       );
 
       if (res.status === 200) {
-        await AsyncStorage.setItem("token", res.data.accessToken);
+        await AsyncStorage.setItem("token", res.data.data.token);
         console.log("Response:", res);
         router.push("/(home)");
       }

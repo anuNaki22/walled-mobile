@@ -1,10 +1,13 @@
 import { View, StyleSheet, Text, TextInput } from "react-native";
 
-function Input({ text }) {
+function Input({ text, onChangeText }) {
   return (
     <View style={styles.container}>
       <Text style={styles.placeholder}>{text}</Text>
-      <TextInput style={styles.input} />
+      <TextInput
+        style={styles.input}
+        onChangeText={(value) => onChangeText(value)} // Kirim perubahan ke parent
+      />
     </View>
   );
 }

@@ -26,18 +26,20 @@ export default function Home() {
         // Ambil token dari AsyncStorage jika diperlukan
         const token = await AsyncStorage.getItem("token");
 
-        const res = await axios.get("http://192.168.30.57:8080/api/auth/me", {
+        const res = await axios.get("https://walled-api.vercel.app/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         // Update state dengan data pengguna
+        const userData = res.data.data;
         setUser({
-          fullname: res.data.fullName,
+          fullname: userData.fullname,
+          avatar_url: userData.avatar_url,
           typeofaccount: "Personal Account",
-          accountnumber: res.data.id,
-          balance: res.data.balance,
+          accountnumber: userData.wallet.account_number,
+          balance: parseFloat(userData.wallet.balance), // Konversi string ke angka
         });
 
         // Set contoh transaksi (opsional)
@@ -45,7 +47,7 @@ export default function Home() {
           {
             id: 1,
             date: "08 December 2024",
-            amount: "75.000",
+            amount: "75000",
             name: "Indoapril",
             type: "Topup",
             debit: false,
@@ -53,7 +55,7 @@ export default function Home() {
           {
             id: 2,
             date: "06 December 2024",
-            amount: "80.000",
+            amount: "80000",
             name: "Si Fulan",
             type: "Transfer",
             debit: true,
@@ -76,13 +78,14 @@ export default function Home() {
       </View>
     );
   }
-
+  console.log(user.avatar_url);
   return (
     <ScrollView containerStyle={styles.container}>
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Image
-            source={require("../../assets/avatar.png")}
+            // source={require("../../assets/avatar.png")}
+            source={{ uri: user?.avatar_url }}
             style={{ width: 50, height: 50 }}
           />
           <View>
@@ -133,83 +136,16 @@ export default function Home() {
           </View>
           <View>
             <View style={{ gap: 20 }}>
-              <TouchableOpacity
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: "#19918F",
-                  borderRadius: 10,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <TouchableOpacity style={styles.iconButton}>
                 <FontAwesome6 size={18} name="add" color={"#fff"} />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: "#19918F",
-                  borderRadius: 10,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <TouchableOpacity style={styles.iconButton}>
                 <FontAwesome size={18} name="send" color={"#fff"} />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* <ScrollView
-          style={{
-            flex: 1,
-            backgroundColor: "#fff",
-            marginTop: 40,
-            borderRadius: 10,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              padding: 20,
-              borderBottomColor: "#b3b3b3",
-              borderBottomWidth: 0.5,
-            }}
-          >
-            Transaction History
-          </Text>
-          {transactions.map((transaction) => (
-            <View
-              key={transaction.id}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingHorizontal: 20,
-                paddingVertical: 15,
-              }}
-            >
-              <View>
-                <Text style={{ fontSize: 18 }}>{transaction.name}</Text>
-                <Text style={{ fontSize: 16 }}>{transaction.type}</Text>
-                <Text style={{ fontSize: 14, color: "#b3b3b3" }}>
-                  {transaction.date}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: transaction.debit ? "red" : "green",
-                }}
-              >
-                {transaction.debit ? "-" : "+"} Rp{" "}
-                {parseInt(transaction.amount).toLocaleString("id-ID")}
-              </Text>
-            </View>
-          ))}
-        </ScrollView> */}
         <TableTransactions />
       </View>
     </ScrollView>
@@ -225,10 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -250,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 25,
     paddingBottom: 12,
     backgroundColor: "#fff",
   },
@@ -261,5 +194,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#19918F",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

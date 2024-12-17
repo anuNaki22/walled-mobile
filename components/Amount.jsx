@@ -21,6 +21,7 @@ export default function Amount({
   showBalance = false,
   marginTop = 0,
   marginBottom = 0,
+  onChangeText,
 }) {
   return (
     <View
@@ -37,6 +38,7 @@ export default function Amount({
           style={styles.input}
           placeholder="100.000"
           keyboardType="number-pad"
+          onChangeText={(value) => onChangeText(value)} // Kirim perubahan ke parent
         />
       </View>
       {showBalance && (
