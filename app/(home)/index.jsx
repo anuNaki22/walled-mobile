@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, Stack } from "expo-router";
 import {
   Image,
@@ -6,20 +7,76 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-
-// function LogoTitle() {
-//   return (
-//     <Image
-//       style={styles.image}
-//       source={{ uri: "https://reactnative.dev/img/tiny_logo.png" }}
-//     />
-//   );
-// }
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import TableTransactions from "../../components/TableTransactions";
 
 export default function Home() {
+  const [user, setUser] = useState(null); // State untuk data pengguna
+  const [transactions, setTransactions] = useState([]); // State untuk riwayat transaksi
+  const [loading, setLoading] = useState(true); // State untuk status loading
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Ambil token dari AsyncStorage jika diperlukan
+        const token = await AsyncStorage.getItem("token");
+
+        const res = await axios.get("http://192.168.30.57:8080/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Update state dengan data pengguna
+        setUser({
+          fullname: res.data.fullName,
+          typeofaccount: "Personal Account",
+          accountnumber: res.data.id,
+          balance: res.data.balance,
+        });
+
+        // Set contoh transaksi (opsional)
+        setTransactions([
+          {
+            id: 1,
+            date: "08 December 2024",
+            amount: "75.000",
+            name: "Indoapril",
+            type: "Topup",
+            debit: false,
+          },
+          {
+            id: 2,
+            date: "06 December 2024",
+            amount: "80.000",
+            name: "Si Fulan",
+            type: "Transfer",
+            debit: true,
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#19918F" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView containerStyle={styles.container}>
       <View style={styles.header}>
@@ -71,7 +128,7 @@ export default function Home() {
           <View>
             <Text style={{ fontSize: 20 }}>Balance</Text>
             <Text style={{ fontSize: 24, fontWeight: "bold" }}>
-              Rp {user.balance}
+              Rp {user.balance.toLocaleString("id-ID")}
             </Text>
           </View>
           <View>
@@ -104,7 +161,7 @@ export default function Home() {
           </View>
         </View>
 
-        <ScrollView
+        {/* <ScrollView
           style={{
             flex: 1,
             backgroundColor: "#fff",
@@ -147,41 +204,17 @@ export default function Home() {
                   color: transaction.debit ? "red" : "green",
                 }}
               >
-                {transaction.debit ? "-" : "+"} Rp {transaction.amount}
+                {transaction.debit ? "-" : "+"} Rp{" "}
+                {parseInt(transaction.amount).toLocaleString("id-ID")}
               </Text>
             </View>
           ))}
-        </ScrollView>
+        </ScrollView> */}
+        <TableTransactions />
       </View>
     </ScrollView>
   );
 }
-
-const user = {
-  fullname: "John Doe",
-  typeofaccount: "Personal Account",
-  accountnumber: "123456789",
-  balance: "10.000.000",
-};
-
-const transactions = [
-  {
-    id: 1,
-    date: "08 December 2024",
-    amount: "75.000",
-    name: "Indoapril",
-    type: "Topup",
-    debit: false,
-  },
-  {
-    id: 2,
-    date: "06 December 2024",
-    amount: "80.000",
-    name: "Si Fulan",
-    type: "Transfer",
-    debit: true,
-  },
-];
 
 const styles = StyleSheet.create({
   balancebox: {
@@ -224,8 +257,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  image: {
-    width: 50,
-    height: 50,
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
