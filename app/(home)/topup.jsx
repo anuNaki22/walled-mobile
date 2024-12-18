@@ -6,13 +6,14 @@ import Button from "../../components/Button";
 import Dropdown from "../../components/Dropdown";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 export default function Topup() {
   const [amount, setAmount] = useState(""); // State untuk jumlah top-up
   const [notes, setNotes] = useState(""); // State untuk catatan
   const [paymentMethod, setPaymentMethod] = useState(null); // State untuk metode pembayaran
+  const router = useRouter(); // Inisialisasi router
 
-  // Fungsi untuk mengirimkan data ke API
   const handleTopup = async () => {
     if (!amount || !paymentMethod) {
       Alert.alert("Error", "Please fill in all required fields.");
@@ -42,6 +43,9 @@ export default function Topup() {
 
       Alert.alert("Success", "Top-up successful!");
       console.log("Response:", response.data);
+
+      // Redirect ke halaman Home
+      router.push("/(home)");
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
       Alert.alert("Error", "Failed to process top-up. Please try again.");
