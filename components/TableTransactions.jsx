@@ -59,8 +59,8 @@ const TableTransactions = () => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Transaction History</Text>
-      {transactions.map((transaction) => (
-        <View key={transaction.id} style={styles.transactionRow}>
+      {transactions.map((transaction, index) => (
+        <View key={index} style={styles.transactionRow}>
           <View>
             <Text style={styles.transactionName}>
               {transaction.description}

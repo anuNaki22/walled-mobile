@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Stack } from "expo-router";
 import {
   Image,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -19,62 +20,67 @@ export default function Home() {
   const [user, setUser] = useState(null); // State untuk data pengguna
   const [transactions, setTransactions] = useState([]); // State untuk riwayat transaksi
   const [loading, setLoading] = useState(true); // State untuk status loading
+  const [refreshing, setRefreshing] = useState(false); // State untuk status refresh
+
+  // Fungsi untuk mengambil data pengguna dan transaksi
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("token");
+
+      // Ambil data profil
+      const res = await axios.get("https://walled-api.vercel.app/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const userData = res.data.data;
+      setUser({
+        fullname: userData.fullname,
+        avatar_url: userData.avatar_url,
+        typeofaccount: "Personal Account",
+        accountnumber: userData.wallet.account_number,
+        balance: parseFloat(userData.wallet.balance), // Konversi string ke angka
+      });
+
+      await AsyncStorage.setItem("balance", userData.wallet.balance.toString());
+
+      // Simulasi data transaksi (Anda dapat mengganti ini dengan API transaksi jika tersedia)
+      setTransactions([
+        {
+          id: 1,
+          date: "08 December 2024",
+          amount: "75000",
+          name: "Indoapril",
+          type: "Topup",
+          debit: false,
+        },
+        {
+          id: 2,
+          date: "06 December 2024",
+          amount: "80000",
+          name: "Si Fulan",
+          type: "Transfer",
+          debit: true,
+        },
+      ]);
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Ambil token dari AsyncStorage jika diperlukan
-        const token = await AsyncStorage.getItem("token");
-
-        const res = await axios.get("https://walled-api.vercel.app/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        // Update state dengan data pengguna
-        const userData = res.data.data;
-        setUser({
-          fullname: userData.fullname,
-          avatar_url: userData.avatar_url,
-          typeofaccount: "Personal Account",
-          accountnumber: userData.wallet.account_number,
-          balance: parseFloat(userData.wallet.balance), // Konversi string ke angka
-        });
-
-        await AsyncStorage.setItem(
-          "balance",
-          userData.wallet.balance.toString()
-        );
-
-        // Set contoh transaksi (opsional)
-        setTransactions([
-          {
-            id: 1,
-            date: "08 December 2024",
-            amount: "75000",
-            name: "Indoapril",
-            type: "Topup",
-            debit: false,
-          },
-          {
-            id: 2,
-            date: "06 December 2024",
-            amount: "80000",
-            name: "Si Fulan",
-            type: "Transfer",
-            debit: true,
-          },
-        ]);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserData();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData(); // Panggil kembali data saat refresh
+    setRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -83,13 +89,17 @@ export default function Home() {
       </View>
     );
   }
-  console.log(user.avatar_url);
+
   return (
-    <ScrollView containerStyle={styles.container}>
+    <ScrollView
+      containerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Image
-            // source={require("../../assets/avatar.png")}
             source={{ uri: user?.avatar_url }}
             style={{ width: 50, height: 50 }}
           />
@@ -124,14 +134,12 @@ export default function Home() {
             style={{ width: 81, height: 77 }}
           />
         </View>
-
         <View style={styles.accountnumber}>
           <Text style={{ color: "#fff", fontSize: 18 }}>Account No.</Text>
           <Text style={{ fontWeight: "bold", color: "#fff", fontSize: 18 }}>
             {user.accountnumber}
           </Text>
         </View>
-
         <View style={styles.balancebox}>
           <View>
             <Text style={{ fontSize: 20 }}>Balance</Text>
@@ -154,8 +162,8 @@ export default function Home() {
             </View>
           </View>
         </View>
-
-        <TableTransactions />
+        <TableTransactions transactions={transactions} />{" "}
+        {/* Pasang data transaksi */}
       </View>
     </ScrollView>
   );
